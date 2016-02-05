@@ -6,49 +6,27 @@ class TaskManager
   end
 
   def create(task)
-    database.transaction do
-      database["tasks"] ||= []
-      database["total"] ||= 0
-      database["total"] += 1
-      database["tasks"] << {
-        "id"          => database["total"],
-        "title"       => task[:title],
-        "description" => task[:description]
-      }
-    end
-  end
-
-  def raw_tasks
-    database.transaction do
-      database['tasks'] || []
-    end
+    dataset.insert(task)
   end
 
   def all
-    raw_tasks.map { |data| Task.new(data) }
+    dataset.to_a.map { |data| Task.new(data) }
   end
 
-  def raw_task(id)
-    raw_tasks.find { |task| task["id"] == id }
+  def dataset
+    database.from(:tasks)
   end
 
   def find(id)
-    Task.new(raw_task(id))
+    Task.new(dataset.where(:id => id).to_a.first)
   end
 
   def update(task, id)
-    database.transaction do
-      target_task = database["tasks"].find { |task| task["id"] == id }
-
-      target_task["title"]       = task[:title]
-      target_task["description"] = task[:description]
-    end
+    dataset.where(:id => id).update(:title => task[:title], :description => task[:description])
   end
 
   def delete(id)
-    database.transaction do 
-      database["tasks"].delete_if { |task| task["id"] == id }
-    end
+    dataset.where(:id => id).delete
   end
 
   def delete_all
