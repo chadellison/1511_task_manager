@@ -28,11 +28,4 @@ class TaskManager
   def delete(id)
     dataset.where(:id => id).delete
   end
-
-  def delete_all
-    database.transaction do
-      database['tasks'] = []
-      database['total'] = 0
-    end
-  end
 end
